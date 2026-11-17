@@ -1,0 +1,1339 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Python &amp; PySide6 Guide</title>
+<style>
+  :root {
+    --bg: #1f2430; --panel: #262c3a; --panel2: #2d3446; --text: #e4e7ee;
+    --muted: #9aa3b8; --accent: #8fb8ff; --accent2: #b8e0a8; --warn: #f0c27b;
+    --code-bg: #1a1f2b; --code-text: #d7dce6; --border: #3a4256;
+  }
+  body.light {
+    --bg: #f7f5f0; --panel: #ffffff; --panel2: #f0ede6; --text: #2b2f38;
+    --muted: #666d7d; --accent: #3b6fb6; --accent2: #3f7d3a; --warn: #9a6a1f;
+    --code-bg: #f3f1ec; --code-text: #2b2f38; --border: #dcd7cc;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: "Segoe UI", Tahoma, "Noto Naskh Arabic", Arial, sans-serif;
+    line-height: 1.85; font-size: 16px;
+  }
+  .layout { display: flex; min-height: 100vh; }
+
+  /* language visibility */
+  html[data-lang="en"] .l-ar { display: none !important; }
+  html[data-lang="ar"] .l-en { display: none !important; }
+
+  /* ---------- sidebar ---------- */
+  nav.side {
+    width: 270px; min-width: 270px; background: var(--panel);
+    border-inline-end: 1px solid var(--border); padding: 20px 16px;
+    position: sticky; top: 0; height: 100vh; overflow-y: auto;
+  }
+  nav.side h1 { font-size: 1.15rem; margin: 0 0 4px; color: var(--accent); direction: ltr; text-align: left; }
+  nav.side .sub { color: var(--muted); font-size: .85rem; margin-bottom: 14px; direction: ltr; text-align: left; }
+  nav.side input {
+    width: 100%; padding: 9px 12px; border-radius: 10px; border: 1px solid var(--border);
+    background: var(--panel2); color: var(--text); font-size: .95rem; margin-bottom: 14px;
+  }
+  nav.side a {
+    display: block; padding: 7px 10px; border-radius: 8px; color: var(--text);
+    text-decoration: none; font-size: .95rem;
+  }
+  nav.side a:hover { background: var(--panel2); }
+  nav.side .group { margin-top: 14px; color: var(--muted); font-size: .8rem; padding: 0 10px; }
+  .controls { display: flex; gap: 8px; margin-top: 18px; }
+  .controls button {
+    flex: 1; padding: 9px; border-radius: 10px; border: 1px solid var(--border);
+    background: var(--panel2); color: var(--text); cursor: pointer; font-size: .9rem;
+  }
+  .controls button.active { border-color: var(--accent); color: var(--accent); }
+
+  /* ---------- main ---------- */
+  main { flex: 1; padding: 36px clamp(18px, 5vw, 70px); max-width: 1000px; }
+  header.hero {
+    background: linear-gradient(135deg, var(--panel2), var(--panel));
+    border: 1px solid var(--border); border-radius: 18px; padding: 28px 30px; margin-bottom: 30px;
+  }
+  header.hero h1 { margin: 0 0 8px; font-size: 1.9rem; color: var(--accent); direction: ltr; text-align: left; }
+  header.hero p { margin: 0; color: var(--muted); }
+
+  section.chapter { margin-bottom: 56px; }
+  section.chapter > h2 {
+    font-size: 1.6rem; color: var(--accent); border-bottom: 2px solid var(--border);
+    padding-bottom: 8px; direction: ltr; text-align: left;
+  }
+  section.chapter h3 { font-size: 1.2rem; color: var(--accent2); margin-top: 30px; direction: ltr; text-align: left; }
+  html[data-lang="ar"] section.chapter h3 { direction: rtl; text-align: right; }
+  .block {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 14px;
+    padding: 18px 22px; margin: 16px 0;
+  }
+  .block p { margin: 8px 0; }
+  .tip { border-inline-start: 4px solid var(--accent2); }
+  .warn { border-inline-start: 4px solid var(--warn); }
+
+  pre {
+    position: relative; background: var(--code-bg); color: var(--code-text);
+    border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; overflow-x: auto;
+    direction: ltr; text-align: left; font-family: Consolas, "Courier New", monospace;
+    font-size: .9rem; line-height: 1.6; margin: 12px 0;
+  }
+  code {
+    background: var(--panel2); padding: 2px 6px; border-radius: 6px;
+    font-family: Consolas, "Courier New", monospace; font-size: .9em;
+    direction: ltr; unicode-bidi: isolate;
+  }
+  .copy {
+    position: absolute; top: 8px; inset-inline-end: 8px; font-size: .75rem;
+    padding: 4px 10px; border-radius: 8px; border: 1px solid var(--border);
+    background: var(--panel2); color: var(--text); cursor: pointer;
+  }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: .95rem; }
+  th, td { border: 1px solid var(--border); padding: 9px 12px; text-align: start; vertical-align: top; }
+  th { background: var(--panel2); color: var(--accent); }
+  td code { direction: ltr; }
+  ul.list, ol.steps { padding-inline-start: 22px; }
+  ul.list li, ol.steps li { margin: 6px 0; }
+  .hidden { display: none !important; }
+  footer { color: var(--muted); font-size: .85rem; text-align: center; margin: 40px 0 10px; }
+
+  @media (max-width: 800px) {
+    .layout { flex-direction: column; }
+    nav.side { width: 100%; min-width: 0; height: auto; position: static; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+
+<nav class="side">
+  <h1>Python &amp; PySide6</h1>
+  <div class="sub">Offline guide / cheat sheet</div>
+  <input id="search" type="search">
+
+  <div class="group">Python</div>
+  <a href="#py-structure"><span class="l-ar">1. بنية ملف Python</span><span class="l-en">1. Python file structure</span></a>
+  <a href="#py-basics"><span class="l-ar">2. المتغيرات والأنواع</span><span class="l-en">2. Variables &amp; types</span></a>
+  <a href="#py-control"><span class="l-ar">3. الشروط والحلقات</span><span class="l-en">3. Conditions &amp; loops</span></a>
+  <a href="#py-functions"><span class="l-ar">4. الدوال</span><span class="l-en">4. Functions</span></a>
+  <a href="#py-classes"><span class="l-ar">5. الكلاسات</span><span class="l-en">5. Classes</span></a>
+  <a href="#py-modules"><span class="l-ar">6. الـ import و __main__</span><span class="l-en">6. Import &amp; __main__</span></a>
+  <a href="#py-collections"><span class="l-ar">7. القوائم والقواميس</span><span class="l-en">7. Lists &amp; dicts</span></a>
+  <a href="#py-errors"><span class="l-ar">8. الأخطاء try / except</span><span class="l-en">8. Errors try / except</span></a>
+  <a href="#py-subprocess"><span class="l-ar">9. تشغيل أوامر خارجية</span><span class="l-en">9. Running external commands</span></a>
+  <a href="#my-files"><span class="l-ar">10. شرح ملفاتك</span><span class="l-en">10. Your files explained</span></a>
+
+  <div class="group">GUI</div>
+  <a href="#tools"><span class="l-ar">11. الأدوات المطلوبة</span><span class="l-en">11. Tools</span></a>
+  <a href="#pyside-install"><span class="l-ar">12. تثبيت PySide6</span><span class="l-en">12. Installing PySide6</span></a>
+  <a href="#pyside-core"><span class="l-ar">13. المفاهيم الأساسية</span><span class="l-en">13. Core concepts</span></a>
+  <a href="#pyside-widgets"><span class="l-ar">14. الـ Widgets</span><span class="l-en">14. Widgets</span></a>
+  <a href="#pyside-layouts"><span class="l-ar">15. الـ Layouts</span><span class="l-en">15. Layouts</span></a>
+  <a href="#pyside-signals"><span class="l-ar">16. Signals &amp; Slots</span><span class="l-en">16. Signals &amp; Slots</span></a>
+  <a href="#pyside-window"><span class="l-ar">17. QMainWindow والحوارات</span><span class="l-en">17. QMainWindow &amp; dialogs</span></a>
+  <a href="#pyside-process"><span class="l-ar">18. QProcess وتشغيل السكربت</span><span class="l-en">18. QProcess &amp; running scripts</span></a>
+  <a href="#pyside-style"><span class="l-ar">19. التنسيق QSS</span><span class="l-en">19. Styling with QSS</span></a>
+  <a href="#pyside-mistakes"><span class="l-ar">20. أخطاء شائعة</span><span class="l-en">20. Common mistakes</span></a>
+
+  <div class="group">Reference</div>
+  <div class="group">More widgets</div>
+  <a href="#more"><span class="l-ar">21. عناصر إضافية (كل الـ Widgets)</span><span class="l-en">21. More widgets (all elements)</span></a>
+  <a href="#m-frame">QFrame</a>
+  <a href="#m-group">QGroupBox</a>
+  <a href="#m-scroll">QScrollArea</a>
+  <a href="#m-tabs">QTabWidget</a>
+  <a href="#m-stack">QStackedWidget</a>
+  <a href="#m-splitter">QSplitter</a>
+  <a href="#m-dialog">QDialog (custom)</a>
+  <a href="#m-color">QColorDialog</a>
+  <a href="#m-menu">QMenuBar / QMenu / QAction</a>
+  <a href="#m-toolbar">QToolBar</a>
+  <a href="#m-status">QStatusBar</a>
+  <a href="#m-spin">QSpinBox</a>
+  <a href="#m-dspin">QDoubleSpinBox</a>
+  <a href="#m-slider">QSlider</a>
+  <a href="#m-dial">QDial</a>
+  <a href="#m-progress">QProgressBar</a>
+  <a href="#m-lcd">QLCDNumber</a>
+  <a href="#m-toolbtn">QToolButton</a>
+  <a href="#m-datetime">QDateEdit / QTimeEdit / QDateTimeEdit</a>
+  <a href="#m-calendar">QCalendarWidget</a>
+  <a href="#m-list">QListWidget</a>
+  <a href="#m-table">QTableWidget</a>
+  <a href="#m-tree">QTreeWidget</a>
+  <a href="#m-image">QLabel + QPixmap</a>
+  <a href="#m-layout">Layout details</a>
+
+  <div class="group">Reference</div>
+  <a href="#cheat"><span class="l-ar">22. ورقة مختصرة</span><span class="l-en">22. Cheat sheet</span></a>
+  <a href="#final"><span class="l-ar">23. ✅ الكود النهائي الصحيح</span><span class="l-en">23. ✅ Final working code</span></a>
+
+  <div class="controls">
+    <button id="langAr">عربي</button>
+    <button id="langEn">English</button>
+  </div>
+  <div class="controls">
+    <button id="themeBtn"><span class="l-ar">تبديل الوضع</span><span class="l-en">Toggle theme</span></button>
+  </div>
+</nav>
+
+<main>
+
+<header class="hero">
+  <h1>Python &amp; PySide6 — Learn to Read &amp; Write</h1>
+  <p><span class="l-ar">دليل يشرح <em>لماذا</em> يعمل الكود وليس فقط <em>ماذا</em> تنسخ. اقرأ كل قسم بالترتيب، وفي النهاية ستجد مثالًا كاملًا جاهزًا.</span><span class="l-en">A guide that explains <em>why</em> code works, not just <em>what</em> to copy. Read each section in order; the final section has a complete ready-to-use example.</span></p>
+</header>
+
+<!-- ==================== PYTHON ==================== -->
+<section class="chapter" id="py-structure">
+  <h2>1. Python — Code Structure</h2>
+  <div class="block">
+    <p class="l-ar">بايثون تقرأ الملف <strong>من الأعلى إلى الأسفل</strong>، سطرًا سطرًا. لا توجد دالة <code>main</code> إجبارية مثل Java. الكود الذي تكتبه في مستوى الملف (بدون مسافة بادئة) يُنفَّذ مباشرة عند التشغيل.</p>
+    <p class="l-ar">الفرق الأهم عن Java: <strong>المسافات البادئة (Indentation) هي التي تحدد البلوكات</strong>، وليس الأقواس <code>{ }</code>. 4 مسافات = مستوى جديد.</p>
+    <p class="l-en">Python reads the file <strong>top to bottom, line by line</strong>. There is no mandatory <code>main</code> function like Java. Code written at the top level (no indentation) runs immediately.</p>
+    <p class="l-en">The key difference from Java: <strong>indentation defines blocks</strong>, not braces <code>{ }</code>. 4 spaces = a new level.</p>
+  </div>
+<pre><code># 1) comment: any line starting with # is ignored
+# 2) import: bring in a ready-made library
+import math
+
+# 3) top-level (global) variable
+app_name = "MyTool"
+
+# 4) function: starts with def, body is indented
+def greet(name):
+    # this line is inside the function (indent 4)
+    print("hello", name)
+
+# 5) program entry point: runs only when this file is executed directly
+if __name__ == "__main__":
+    greet(app_name)
+    print(math.sqrt(16))</code></pre>
+  <div class="block">
+    <h3><span class="l-ar">شرح كل سطر</span><span class="l-en">Line by line</span></h3>
+    <table>
+      <tr><th><span class="l-ar">السطر</span><span class="l-en">Line</span></th><th><span class="l-ar">ماذا يفعل</span><span class="l-en">What it does</span></th></tr>
+      <tr><td><code>import math</code></td><td><span class="l-ar">يحمل مكتبة الرياضيات الجاهزة لتستخدم <code>math.sqrt</code>.</span><span class="l-en">Loads the math library so you can use <code>math.sqrt</code>.</span></td></tr>
+      <tr><td><code>app_name = "MyTool"</code></td><td><span class="l-ar">ينشئ متغيرًا نصيًا اسمه <code>app_name</code>. لا تحتاج لتحديد النوع.</span><span class="l-en">Creates a text variable named <code>app_name</code>. No type declaration needed.</span></td></tr>
+      <tr><td><code>def greet(name):</code></td><td><span class="l-ar">يعرّف دالة تستقبل <code>name</code>. لم تُنفَّذ بعد.</span><span class="l-en">Defines a function that takes <code>name</code>. Not executed yet.</span></td></tr>
+      <tr><td><code>if __name__ == "__main__":</code></td><td><span class="l-ar">"إذا كان هذا الملف هو المشغَّل مباشرة". عند استيراده من ملف آخر لن يُنفَّذ هذا الجزء.</span><span class="l-en">"If this file is the one being run directly". If imported by another file, this block does not run.</span></td></tr>
+      <tr><td><code>greet(app_name)</code></td><td><span class="l-ar">يستدعي الدالة ويمرر لها القيمة.</span><span class="l-en">Calls the function and passes the value.</span></td></tr>
+    </table>
+  </div>
+  <div class="block tip">
+    <p class="l-ar"><strong>قاعدة ذهبية:</strong> السطر ذو المسافة البادئة يتبع السطر الذي فوقه (<code>def</code> / <code>if</code> / <code>for</code> / <code>class</code>). عندما تعود للمسافة الأصلية ينتهي البلوك.</p>
+    <p class="l-en"><strong>Golden rule:</strong> an indented line belongs to the line above it (<code>def</code> / <code>if</code> / <code>for</code> / <code>class</code>). When indentation returns to the original level, the block ends.</p>
+  </div>
+</section>
+
+<section class="chapter" id="py-basics">
+  <h2>2. Variables, Types &amp; Input/Output</h2>
+  <div class="block">
+    <p class="l-ar">المتغير اسم يشير إلى قيمة. بايثون تكتشف النوع تلقائيًا (Dynamic typing).</p>
+    <p class="l-en">A variable is a name that refers to a value. Python detects the type automatically (dynamic typing).</p>
+  </div>
+<pre><code>name = "Ali"          # str   (text)
+age = 25              # int   (whole number)
+height = 1.78         # float (decimal number)
+is_ready = True       # bool  (True / False)
+nothing = None        # no value (like null)
+
+print("name:", name, "age:", age)     # print
+user = input("enter text: ")          # input always returns str
+
+# f-string: easiest way to mix text and variables
+print(f"{name} has {age} years")
+
+# type conversion
+number = int("42")      # text -> int
+text = str(3.14)        # number -> text</code></pre>
+  <div class="block warn">
+    <p class="l-ar"><strong>انتبه:</strong> <code>input()</code> يرجع دائمًا نصًا. إذا أردت رقمًا استخدم <code>int()</code> أو <code>float()</code>.</p>
+    <p class="l-en"><strong>Careful:</strong> <code>input()</code> always returns text. If you need a number, use <code>int()</code> or <code>float()</code>.</p>
+  </div>
+</section>
+
+<section class="chapter" id="py-control">
+  <h2>3. Conditions &amp; Loops</h2>
+<pre><code>score = 75
+
+# conditions
+if score >= 90:
+    print("A")
+elif score >= 70:      # elif = else if
+    print("B")
+else:
+    print("C")
+
+# for loop over a range
+for i in range(3):           # 0, 1, 2
+    print("i =", i)
+
+fruits = ["apple", "banana"]
+for f in fruits:
+    print(f)
+
+# while loop
+count = 0
+while count < 3:
+    count += 1               # same as count = count + 1
+
+# comparisons: ==  !=  <  >  <=  >=
+# logic:       and  or  not
+# membership:  in
+if "apple" in fruits and not score < 50:
+    print("found")</code></pre>
+  <div class="block tip">
+    <p class="l-ar">لا توجد <code>;</code> في نهاية السطر، ولا <code>{ }</code> للبلوكات، والنقطتان <code>:</code> تعني "ابدأ بلوك جديد بالمسافة البادئة".</p>
+    <p class="l-en">No <code>;</code> at the end of lines, no <code>{ }</code> for blocks. The colon <code>:</code> means "a new indented block starts here".</p>
+  </div>
+</section>
+
+<section class="chapter" id="py-functions">
+  <h2>4. Functions</h2>
+<pre><code># simple function
+def add(a, b):
+    return a + b          # return sends the value back to the caller
+
+result = add(2, 3)        # result = 5
+
+# default parameter
+def hello(name="guest"):
+    print("hello", name)
+
+hello()                   # hello guest
+hello("Sara")             # hello Sara
+
+# any number of arguments
+def total(*numbers):
+    return sum(numbers)
+
+print(total(1, 2, 3))     # 6
+
+# type hints (optional, but helpful)
+def square(x: int) -> int:
+    return x * x</code></pre>
+  <div class="block">
+    <p class="l-ar"><strong>لاحظ:</strong> <code>print()</code> <em>تطبع</em> ولا <em>ترجع</em> قيمة. أما <code>return</code> فترجع القيمة. كثير من المبتدئين يخلطون بينهما.</p>
+    <p class="l-en"><strong>Note:</strong> <code>print()</code> <em>displays</em> but does not <em>return</em>. <code>return</code> sends a value back. Many beginners confuse the two.</p>
+  </div>
+</section>
+
+<section class="chapter" id="py-classes">
+  <h2>5. Classes (similar to Java)</h2>
+  <div class="block">
+    <p class="l-ar">الكلاس قالب (Blueprint). الـ <code>self</code> في بايثون يعادل <code>this</code> في Java، لكن يجب كتابته صراحةً كأول معامل في كل method.</p>
+    <p class="l-en">A class is a blueprint. <code>self</code> in Python is the equivalent of <code>this</code> in Java, but it must be written explicitly as the first parameter of every method.</p>
+  </div>
+<pre><code>class Dog:
+    # __init__ = constructor (runs when the object is created)
+    def __init__(self, name):
+        self.name = name       # attribute stored in the object
+
+    # method needs self
+    def bark(self):
+        print(self.name, "says woof")
+
+# create an object (no 'new' keyword)
+d = Dog("Rex")
+d.bark()          # Rex says woof
+
+# inheritance
+class Puppy(Dog):
+    def bark(self):
+        super().bark()          # call the parent's method
+        print("(tiny voice)")</code></pre>
+  <div class="block tip">
+    <p class="l-ar">في PySide6 ستكتب كلاسات ترث من <code>QWidget</code> أو <code>QMainWindow</code>، وهو الأسلوب الأساسي للتطبيقات، كما تفعل في Java مع JFrame.</p>
+    <p class="l-en">In PySide6 you will write classes that inherit from <code>QWidget</code> or <code>QMainWindow</code>. This is the main pattern for applications, similar to JFrame in Java.</p>
+  </div>
+</section>
+
+<section class="chapter" id="py-modules">
+  <h2>6. Import, Modules &amp; __main__</h2>
+<pre><code># import everything from a module
+import sys
+sys.argv            # list of command-line arguments
+
+# import only specific parts
+from PySide6.QtWidgets import QWidget, QPushButton
+
+# import with an alias
+import subprocess as sp
+
+# utils.py in the same folder
+# from utils import greet</code></pre>
+  <div class="block">
+    <h3><span class="l-ar">لماذا <code>if __name__ == "__main__":</code>؟</span><span class="l-en">Why <code>if __name__ == "__main__":</code>?</span></h3>
+    <p class="l-ar">بايثون تضع في <code>__name__</code> القيمة <code>"__main__"</code> إذا كان الملف هو المشغَّل مباشرة، وتضع اسم الملف إذا تم استيراده. هذا يسمح بكتابة ملف يعمل كبرنامج ومكتبة معًا.</p>
+    <p class="l-en">Python sets <code>__name__</code> to <code>"__main__"</code> when the file is run directly, and to the module name when it is imported. This lets one file work both as a program and as a library.</p>
+  </div>
+</section>
+
+<section class="chapter" id="py-collections">
+  <h2>7. Lists, Tuples, Dicts</h2>
+<pre><code>nums = [1, 2, 3]        # list: mutable
+nums.append(4)          # add at the end
+print(nums[0])          # first item (index starts at 0)
+print(nums[-1])         # last item
+print(len(nums))        # length
+
+point = (10, 20)        # tuple: immutable
+
+user = {                # dict: key -> value (like Map in Java)
+    "name": "Ali",
+    "age": 25
+}
+print(user["name"])
+print(user.get("city", "unknown"))   # default if key is missing
+
+# list comprehension (short form)
+squares = [x * x for x in range(5)]  # [0, 1, 4, 9, 16]</code></pre>
+</section>
+
+<section class="chapter" id="py-errors">
+  <h2>8. Errors — try / except</h2>
+<pre><code>try:
+    n = int(input("number: "))
+    print(10 / n)
+except ValueError:
+    print("that is not a number")
+except ZeroDivisionError:
+    print("cannot divide by zero")
+finally:
+    print("this always runs")</code></pre>
+  <div class="block">
+    <p class="l-ar">استخدم <code>try</code> فقط حول الأسطر التي قد تفشل: مدخلات المستخدم، الملفات، الشبكة، الأوامر الخارجية.</p>
+    <p class="l-en">Use <code>try</code> only around lines that may fail: user input, files, network, external commands.</p>
+  </div>
+</section>
+
+<section class="chapter" id="py-subprocess">
+  <h2>9. Running External Commands</h2>
+  <div class="block">
+    <p class="l-ar">مشروعك يشغّل سكربتات Bash، وهناك طريقتان:</p>
+    <p class="l-en">Your project runs Bash scripts. There are two ways to do it:</p>
+  </div>
+<pre><code>import subprocess
+
+# simple way: waits until the script finishes (freezes a GUI window!)
+result = subprocess.run(
+    ["sh", "hi.sh", "arg1", "arg2"],   # program first, then its arguments
+    capture_output=True,               # capture stdout and stderr
+    text=True                          # return text, not bytes
+)
+print(result.stdout)
+print(result.stderr)
+print(result.returncode)               # 0 = success</code></pre>
+  <div class="block warn">
+    <p class="l-ar"><strong>تنبيه:</strong> في تطبيق GUI لا تستخدم <code>subprocess.run</code> لسكربت طويل لأنه يجمّد الواجهة. استخدم <code>QProcess</code> (القسم 18) لأنه يعمل بالـ Signals وغير متزامن.</p>
+    <p class="l-en"><strong>Warning:</strong> in a GUI app do not use <code>subprocess.run</code> for long scripts, because it freezes the window. Use <code>QProcess</code> (section 18), which is asynchronous and uses Signals.</p>
+  </div>
+</section>
+
+<section class="chapter" id="my-files">
+  <h2>10. Your Files Explained</h2>
+  <div class="block">
+    <h3>hi.sh</h3>
+    <p class="l-ar">سكربت Bash بسيط يستقبل وسيطين <code>$1</code> و <code>$2</code> ويطبعهما. الرقم هو ترتيب الوسيط بعد اسم الملف.</p>
+    <p class="l-en">A simple Bash script that receives two arguments <code>$1</code> and <code>$2</code> and prints them. The number is the argument's position after the script name.</p>
+  </div>
+  <div class="block">
+    <h3>python-gui.py</h3>
+    <p class="l-ar">أول مثال GUI كامل: <code>QWidget</code> كنافذة، و<code>QVBoxLayout</code> لترتيب العناصر عموديًا، و<code>button.clicked.connect(...)</code> لربط الزر بدالة. الدالة <code>on_run</code> تستدعي <code>subprocess.run</code> لتشغيل <code>hi.sh</code> وتعرض النتيجة. آخر سطر <code>sys.exit(app.exec())</code> يشغّل حلقة الأحداث.</p>
+    <p class="l-en">The first complete GUI example: <code>QWidget</code> as the window, <code>QVBoxLayout</code> to stack widgets vertically, and <code>button.clicked.connect(...)</code> to link a button to a function. <code>on_run</code> calls <code>subprocess.run</code> to execute <code>hi.sh</code> and shows the result. The last line <code>sys.exit(app.exec())</code> starts the event loop.</p>
+  </div>
+  <div class="block">
+    <h3>pthon-gui2.py</h3>
+    <p class="l-ar">يوضح <strong>QCheckBox</strong> و<strong>QRadioButton</strong>. الإشارة <code>checkStateChanged</code> تنفذ عند تغيير الحالة، و<code>setVisible</code> و<code>setHidden</code> لإظهار وإخفاء العناصر. الدالة <code>on_radio</code> تغيّر نص الزر حسب الاختيار.</p>
+    <p class="l-en">Demonstrates <strong>QCheckBox</strong> and <strong>QRadioButton</strong>. The <code>checkStateChanged</code> signal fires when the state changes, and <code>setVisible</code> / <code>setHidden</code> show and hide widgets. <code>on_radio</code> changes the button text based on the selection.</p>
+  </div>
+  <div class="block">
+    <h3>python-term.py</h3>
+    <p class="l-ar">أقوى ملف عندك: يشغّل سكربت Bash عبر <strong>QProcess</strong> ويعرض المخرجات أثناء التشغيل. <code>readyReadStandardOutput</code> تعمل كلما وصلت مخرجات جديدة، و<code>finished</code> تعمل عند الانتهاء.</p>
+    <p class="l-en">Your most powerful file: it runs a Bash script through <strong>QProcess</strong> and shows output while it runs. <code>readyReadStandardOutput</code> fires whenever new output arrives, and <code>finished</code> fires when the script ends.</p>
+  </div>
+</section>
+
+<!-- ==================== GUI ==================== -->
+<section class="chapter" id="tools">
+  <h2>11. Tools</h2>
+  <div class="block">
+    <table>
+      <tr><th><span class="l-ar">الأداة</span><span class="l-en">Tool</span></th><th><span class="l-ar">لماذا تحتاجها</span><span class="l-en">Why you need it</span></th></tr>
+      <tr><td>Python 3.10+</td><td><span class="l-ar">لغة البرمجة نفسها.</span><span class="l-en">The programming language itself.</span></td></tr>
+      <tr><td>pip</td><td><span class="l-ar">مدير الحزم، تثبّت به PySide6.</span><span class="l-en">Package manager, used to install PySide6.</span></td></tr>
+      <tr><td>PySide6</td><td><span class="l-ar">مكتبة Qt الرسمية لواجهات GUI بلغة Python.</span><span class="l-en">The official Qt library for GUIs in Python.</span></td></tr>
+      <tr><td>venv</td><td><span class="l-ar">بيئة معزولة لكل مشروع حتى لا تتعارض الحزم.</span><span class="l-en">An isolated environment per project so packages don't conflict.</span></td></tr>
+      <tr><td>Qt Designer</td><td><span class="l-ar">محرر سحب وإفلات لبناء الواجهة بصريًا (ينتج ملف <code>.ui</code>).</span><span class="l-en">Drag-and-drop editor to design the UI visually (produces a <code>.ui</code> file).</span></td></tr>
+      <tr><td>pyside6-uic</td><td><span class="l-ar">يحوّل ملف <code>.ui</code> إلى كود Python.</span><span class="l-en">Converts a <code>.ui</code> file into Python code.</span></td></tr>
+      <tr><td>VS Code / PyCharm</td><td><span class="l-ar">محرر كود مع إكمال تلقائي وتصحيح أخطاء.</span><span class="l-en">Code editor with autocomplete and debugging.</span></td></tr>
+      <tr><td>bash / sh</td><td><span class="l-ar">لتشغيل سكربتاتك مثل <code>hi.sh</code>.</span><span class="l-en">To run your scripts such as <code>hi.sh</code>.</span></td></tr>
+    </table>
+  </div>
+<pre><code># create and activate a virtual environment (Windows PowerShell)
+python -m venv .venv
+.venv\Scripts\activate
+
+# Linux / macOS
+python3 -m venv .venv
+source .venv/bin/activate</code></pre>
+</section>
+
+<section class="chapter" id="pyside-install">
+  <h2>12. Installing PySide6</h2>
+<pre><code>pip install PySide6
+
+# check the version
+python -c "import PySide6; print(PySide6.__version__)"
+
+# Qt extra tools: Designer and uic
+pyside6-designer                  # opens Qt Designer
+pyside6-uic form.ui -o form.py    # converts .ui to .py</code></pre>
+</section>
+
+<section class="chapter" id="pyside-core">
+  <h2>13. Core Qt Concepts</h2>
+  <div class="block">
+    <table>
+      <tr><th><span class="l-ar">المفهوم</span><span class="l-en">Concept</span></th><th><span class="l-ar">الشرح</span><span class="l-en">Explanation</span></th></tr>
+      <tr><td><code>QApplication</code></td><td><span class="l-ar">المحرك الأساسي للتطبيق. يُنشأ <strong>مرة واحدة فقط</strong> قبل أي نافذة.</span><span class="l-en">The core engine of the app. Create it <strong>only once</strong>, before any window.</span></td></tr>
+      <tr><td>Widget</td><td><span class="l-ar">أي عنصر مرئي: زر، نص، حقل إدخال، نافذة. كلها ترث من <code>QWidget</code>.</span><span class="l-en">Any visible element: button, label, input, window. All inherit from <code>QWidget</code>.</span></td></tr>
+      <tr><td>Layout</td><td><span class="l-ar">مدير الترتيب. بدلًا من تحديد الإحداثيات (x, y) تضع العناصر داخل Layout وهو يرتبها.</span><span class="l-en">Arrangement manager. Instead of fixed (x, y) positions, widgets go in a layout that arranges them.</span></td></tr>
+      <tr><td>Signal</td><td><span class="l-ar">إشارة يرسلها العنصر عند حدث (مثل <code>clicked</code>).</span><span class="l-en">A notification a widget emits on an event (such as <code>clicked</code>).</span></td></tr>
+      <tr><td>Slot</td><td><span class="l-ar">دالة تستقبل الإشارة (مثل دالتك <code>on_click</code>).</span><span class="l-en">A function that receives a signal (such as your <code>on_click</code>).</span></td></tr>
+      <tr><td>Event loop</td><td><span class="l-ar"><code>app.exec()</code>: حلقة لا تنتهي تستمع للأحداث حتى تغلق النافذة.</span><span class="l-en"><code>app.exec()</code>: a loop that listens for events until the window closes.</span></td></tr>
+    </table>
+  </div>
+  <div class="block">
+    <h3><span class="l-ar">تدفق البرنامج</span><span class="l-en">Program flow</span></h3>
+    <ol class="steps">
+      <li><span class="l-ar"><code>QApplication</code> إنشاء</span><span class="l-en">Create <code>QApplication</code></span></li>
+      <li><span class="l-ar">إنشاء الـ Widgets وإضافتها إلى Layout</span><span class="l-en">Create widgets and add them to a layout</span></li>
+      <li><span class="l-ar">ربط الـ Signals بالـ Slots (<code>connect</code>)</span><span class="l-en">Connect Signals to Slots (<code>connect</code>)</span></li>
+      <li><span class="l-ar"><code>window.show()</code> لعرض النافذة</span><span class="l-en"><code>window.show()</code> to display the window</span></li>
+      <li><span class="l-ar"><code>app.exec()</code> يبدأ حلقة الأحداث</span><span class="l-en"><code>app.exec()</code> starts the event loop</span></li>
+    </ol>
+  </div>
+<pre><code>import sys
+from PySide6.QtWidgets import QApplication, QWidget
+
+app = QApplication(sys.argv)     # 1) engine
+window = QWidget()               # 2) window
+window.setWindowTitle("Hello")
+window.resize(400, 300)
+window.show()                    # 3) show
+sys.exit(app.exec())             # 4) event loop</code></pre>
+</section>
+
+<section class="chapter" id="pyside-widgets">
+  <h2>14. Most Used Widgets</h2>
+  <div class="block">
+    <table>
+      <tr><th>Widget</th><th><span class="l-ar">الاستخدام</span><span class="l-en">Use</span></th><th>Methods / Signals</th></tr>
+      <tr><td><code>QLabel</code></td><td><span class="l-ar">نص للعرض فقط</span><span class="l-en">Display-only text</span></td><td><code>setText()</code>, <code>setPixmap()</code></td></tr>
+      <tr><td><code>QPushButton</code></td><td><span class="l-ar">زر</span><span class="l-en">Button</span></td><td><code>clicked</code></td></tr>
+      <tr><td><code>QLineEdit</code></td><td><span class="l-ar">حقل إدخال سطر واحد</span><span class="l-en">Single-line input</span></td><td><code>text()</code>, <code>setPlaceholderText()</code>, <code>textChanged</code>, <code>returnPressed</code></td></tr>
+      <tr><td><code>QTextEdit</code></td><td><span class="l-ar">نص متعدد الأسطر</span><span class="l-en">Multi-line text</span></td><td><code>toPlainText()</code>, <code>setReadOnly()</code>, <code>append()</code></td></tr>
+      <tr><td><code>QCheckBox</code></td><td><span class="l-ar">مربع اختيار</span><span class="l-en">Checkbox</span></td><td><code>isChecked()</code>, <code>toggled</code></td></tr>
+      <tr><td><code>QRadioButton</code></td><td><span class="l-ar">اختيار واحد من مجموعة</span><span class="l-en">Pick one from a group</span></td><td><code>isChecked()</code>, <code>toggled</code></td></tr>
+      <tr><td><code>QComboBox</code></td><td><span class="l-ar">قائمة منسدلة</span><span class="l-en">Dropdown list</span></td><td><code>addItems()</code>, <code>currentText()</code>, <code>currentIndexChanged</code></td></tr>
+      <tr><td><code>QSpinBox</code></td><td><span class="l-ar">رقم صحيح بأزرار + و -</span><span class="l-en">Integer with +/- buttons</span></td><td><code>value()</code>, <code>valueChanged</code></td></tr>
+      <tr><td><code>QSlider</code></td><td><span class="l-ar">شريط تمرير</span><span class="l-en">Slider</span></td><td><code>value()</code>, <code>valueChanged</code></td></tr>
+      <tr><td><code>QProgressBar</code></td><td><span class="l-ar">شريط تقدم</span><span class="l-en">Progress bar</span></td><td><code>setValue()</code></td></tr>
+      <tr><td><code>QListWidget</code></td><td><span class="l-ar">قائمة عناصر</span><span class="l-en">List of items</span></td><td><code>addItem()</code>, <code>itemClicked</code></td></tr>
+      <tr><td><code>QTableWidget</code></td><td><span class="l-ar">جدول</span><span class="l-en">Table</span></td><td><code>setItem()</code>, <code>setRowCount()</code></td></tr>
+      <tr><td><code>QFrame</code></td><td><span class="l-ar">حاوية بحدود</span><span class="l-en">Bordered container</span></td><td><code>setFrameShape()</code></td></tr>
+    </table>
+  </div>
+<pre><code>from PySide6.QtWidgets import QLabel, QPushButton, QLineEdit, QCheckBox, QComboBox
+
+label = QLabel("Hello")
+label.setStyleSheet("font-size: 18px; color: #8fb8ff;")
+
+btn = QPushButton("Click me")
+btn.setEnabled(False)        # disable the button
+btn.setToolTip("tip text")   # text shown on hover
+
+edit = QLineEdit()
+edit.setPlaceholderText("type here")
+edit.setMaxLength(20)
+value = edit.text()          # read the text
+
+box = QComboBox()
+box.addItems(["one", "two", "three"])
+choice = box.currentText()
+
+chk = QCheckBox("agree")
+chk.setChecked(True)
+print(chk.isChecked())       # True / False</code></pre>
+</section>
+
+<section class="chapter" id="pyside-layouts">
+  <h2>15. Layouts</h2>
+  <div class="block">
+    <table>
+      <tr><th>Layout</th><th><span class="l-ar">الترتيب</span><span class="l-en">Arrangement</span></th></tr>
+      <tr><td><code>QVBoxLayout</code></td><td><span class="l-ar">عمودي (من الأعلى للأسفل)</span><span class="l-en">Vertical (top to bottom)</span></td></tr>
+      <tr><td><code>QHBoxLayout</code></td><td><span class="l-ar">أفقي</span><span class="l-en">Horizontal</span></td></tr>
+      <tr><td><code>QGridLayout</code></td><td><span class="l-ar">شبكة صفوف وأعمدة</span><span class="l-en">Grid of rows and columns</span></td></tr>
+      <tr><td><code>QFormLayout</code></td><td><span class="l-ar">نموذج: تسمية + حقل</span><span class="l-en">Form: label + field</span></td></tr>
+    </table>
+  </div>
+<pre><code>from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QGridLayout, QPushButton
+
+layout = QVBoxLayout()           # main container, vertical
+row = QHBoxLayout()              # horizontal row inside it
+row.addWidget(QPushButton("OK"))
+row.addWidget(QPushButton("Cancel"))
+layout.addLayout(row)            # put the row inside the column
+
+grid = QGridLayout()
+grid.addWidget(QPushButton("A"), 0, 0)         # row 0, column 0
+grid.addWidget(QPushButton("B"), 0, 1)
+grid.addWidget(QPushButton("C"), 1, 0, 1, 2)   # spans two columns
+
+widget.setLayout(layout)         # assign the layout to the window</code></pre>
+  <div class="block warn">
+    <p class="l-ar"><strong>لا تستخدم <code>move()</code> و<code>setGeometry()</code> لترتيب العناصر</strong> إلا عند الضرورة، لأن الـ Layout يتكيف تلقائيًا مع تغيير حجم النافذة.</p>
+    <p class="l-en"><strong>Avoid <code>move()</code> and <code>setGeometry()</code> for arranging widgets</strong> unless necessary. A layout adapts automatically when the window is resized.</p>
+  </div>
+</section>
+
+<section class="chapter" id="pyside-signals">
+  <h2>16. Signals &amp; Slots</h2>
+  <div class="block">
+    <p class="l-ar">هذا قلب Qt. العنصر <strong>يرسل</strong> إشارة، وأنت <strong>تربطها</strong> بدالة. يشبه <code>setOnClickListener</code> في Android لكن على مستوى أعم.</p>
+    <p class="l-en">This is the heart of Qt. A widget <strong>emits</strong> a signal, and you <strong>connect</strong> it to a function. Similar to <code>setOnClickListener</code> in Android, but more general.</p>
+  </div>
+<pre><code>def on_click():
+    print("clicked!")
+
+btn.clicked.connect(on_click)            # connect a signal to a function
+btn.clicked.connect(lambda: print("x"))  # anonymous function for simple cases
+
+# receiving a value from the signal
+def on_checked(checked):                 # toggled sends True/False
+    print("state:", checked)
+
+chk.toggled.connect(on_checked)
+
+# remove a connection
+btn.clicked.disconnect(on_click)
+
+# emit manually (rare)
+btn.click()</code></pre>
+  <div class="block tip">
+    <p class="l-ar"><strong>لماذا <code>connect(on_click)</code> بدون أقواس؟</strong> لأنك تمرر <em>الدالة نفسها</em> كمرجع. لو كتبت <code>on_click()</code> ستنفذ الدالة فورًا عند هذا السطر وليس عند الضغط.</p>
+    <p class="l-en"><strong>Why <code>connect(on_click)</code> without parentheses?</strong> Because you pass the <em>function itself</em> as a reference. Writing <code>on_click()</code> would run it immediately on that line instead of on click.</p>
+  </div>
+  <div class="block">
+    <h3><span class="l-ar">الإشارات الشائعة</span><span class="l-en">Common signals</span></h3>
+    <ul class="list">
+      <li><code>clicked</code> — <span class="l-ar">زر</span><span class="l-en">button</span></li>
+      <li><code>textChanged(str)</code> — <span class="l-ar">نص الحقل تغيّر</span><span class="l-en">field text changed</span></li>
+      <li><code>returnPressed</code> — <span class="l-ar">ضغط Enter</span><span class="l-en">Enter pressed</span></li>
+      <li><code>toggled(bool)</code> — <span class="l-ar">checkbox / radio تغيّر</span><span class="l-en">checkbox / radio changed</span></li>
+      <li><code>currentIndexChanged(int)</code> — ComboBox</li>
+      <li><code>valueChanged(int)</code> — Spin / Slider</li>
+      <li><code>readyReadStandardOutput</code> — <span class="l-ar">QProcess لديه مخرجات</span><span class="l-en">QProcess has output</span></li>
+      <li><code>finished(int, ...)</code> — <span class="l-ar">QProcess انتهى</span><span class="l-en">QProcess finished</span></li>
+    </ul>
+  </div>
+</section>
+
+<section class="chapter" id="pyside-window">
+  <h2>17. QMainWindow &amp; Dialogs</h2>
+  <div class="block">
+    <p class="l-ar"><code>QMainWindow</code> تعطيك نافذة كاملة فيها شريط قوائم وشريط أدوات وشريط حالة. أما <code>QWidget</code> فبسيطة. في التطبيقات الكبيرة استخدم QMainWindow.</p>
+    <p class="l-en"><code>QMainWindow</code> gives you a full window with a menu bar, toolbar and status bar. <code>QWidget</code> is simpler. For larger apps use QMainWindow.</p>
+  </div>
+<pre><code>from PySide6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QLabel
+
+class Main(QMainWindow):
+    def __init__(self):
+        super().__init__()                     # essential: initialize the parent class
+        self.setWindowTitle("App")
+        self.resize(500, 350)
+
+        central = QWidget()                    # main content
+        self.setCentralWidget(central)
+        layout = QVBoxLayout(central)          # attach the layout directly
+        layout.addWidget(QLabel("content"))
+
+        self.statusBar().showMessage("ready")  # status bar
+
+# ---- ready-made dialogs ----
+from PySide6.QtWidgets import QMessageBox, QFileDialog, QInputDialog
+
+QMessageBox.information(self, "Title", "done")
+QMessageBox.warning(self, "Title", "careful")
+ok = QMessageBox.question(self, "Sure?", "Delete file?") == QMessageBox.StandardButton.Yes
+
+path, _ = QFileDialog.getOpenFileName(self, "Open", "", "Shell (*.sh);;All (*)")
+text, ok = QInputDialog.getText(self, "Name", "enter name:")</code></pre>
+  <div class="block tip">
+    <p class="l-ar">لاحظ: <code>QFileDialog.getOpenFileName</code> ترجع <strong>tuple</strong> من عنصرين، لذلك نكتب <code>path, _ =</code> لتجاهل الثاني.</p>
+    <p class="l-en">Note: <code>QFileDialog.getOpenFileName</code> returns a <strong>tuple</strong> of two items, so we write <code>path, _ =</code> to ignore the second.</p>
+  </div>
+</section>
+
+<section class="chapter" id="pyside-process">
+  <h2>18. QProcess — Running Scripts Without Freezing the UI</h2>
+  <div class="block">
+    <table>
+      <tr><th></th><th>subprocess.run</th><th>QProcess</th></tr>
+      <tr><td><span class="l-ar">يجمّد الواجهة؟</span><span class="l-en">Freezes the UI?</span></td><td><span class="l-ar">نعم</span><span class="l-en">Yes</span></td><td><span class="l-ar">لا</span><span class="l-en">No</span></td></tr>
+      <tr><td><span class="l-ar">مخرجات مباشرة أثناء التشغيل</span><span class="l-en">Live output while running</span></td><td><span class="l-ar">لا (في النهاية)</span><span class="l-en">No (only at the end)</span></td><td><span class="l-ar">نعم (عبر Signal)</span><span class="l-en">Yes (via a Signal)</span></td></tr>
+      <tr><td><span class="l-ar">مناسب لـ GUI</span><span class="l-en">Suited for GUI</span></td><td><span class="l-ar">لا</span><span class="l-en">No</span></td><td><span class="l-ar">نعم</span><span class="l-en">Yes</span></td></tr>
+    </table>
+  </div>
+<pre><code>from PySide6.QtCore import QProcess
+
+self.process = QProcess(self)
+# merge stdout and stderr into one stream
+self.process.setProcessChannelMode(QProcess.ProcessChannelMode.MergedChannels)
+self.process.readyReadStandardOutput.connect(self.on_output)
+self.process.finished.connect(self.on_finished)
+
+def run_script(self):
+    # don't start a new script while the current one is running
+    if self.process.state() != QProcess.ProcessState.NotRunning:
+        return
+    self.process.start("sh", ["hi.sh", "arg1", "arg2"])
+
+def on_output(self):
+    raw = self.process.readAllStandardOutput().data()
+    text = raw.decode("utf-8", errors="replace")   # bytes -> str
+    self.output.insertPlainText(text)
+
+def on_finished(self, exit_code, exit_status):
+    self.output.append(f"\n--- done (code {exit_code}) ---")</code></pre>
+</section>
+
+<section class="chapter" id="pyside-style">
+  <h2>19. Styling with QSS (like CSS)</h2>
+  <div class="block">
+    <p class="l-ar">QSS مشابه جدًا لـ CSS. تستخدم <code>setStyleSheet</code> على أي widget، ويؤثر على أبنائه أيضًا.</p>
+    <p class="l-en">QSS is very similar to CSS. Use <code>setStyleSheet</code> on any widget; it also affects its children.</p>
+  </div>
+<pre><code>window.setStyleSheet("""
+    QWidget { background: #1f2430; color: #e4e7ee; font-size: 15px; }
+    QPushButton {
+        background: #2d3446;
+        border: 1px solid #3a4256;
+        border-radius: 8px;
+        padding: 8px 14px;
+    }
+    QPushButton:hover { background: #3a4256; }
+    QLineEdit { border-radius: 6px; padding: 6px; }
+""")</code></pre>
+</section>
+
+<section class="chapter" id="pyside-mistakes">
+  <h2>20. Common Mistakes</h2>
+  <div class="block warn">
+    <ul class="list">
+      <li><span class="l-ar"><strong>نسيان <code>super().__init__()</code></strong> داخل كلاس يرث من Qt، فيحدث خطأ غريب.</span><span class="l-en"><strong>Forgetting <code>super().__init__()</code></strong> in a Qt subclass, which causes strange errors.</span></li>
+      <li><span class="l-ar"><strong>كتابة <code>connect(func())</code></strong> بدل <code>connect(func)</code>.</span><span class="l-en"><strong>Writing <code>connect(func())</code></strong> instead of <code>connect(func)</code>.</span></li>
+      <li><span class="l-ar"><strong>إنشاء نافذة قبل <code>QApplication</code></strong>.</span><span class="l-en"><strong>Creating a window before <code>QApplication</code></strong>.</span></li>
+      <li><span class="l-ar"><strong>نسيان <code>self.</code></strong> على الـ widgets، فتُحذف عند انتهاء الدالة ولا تظهر.</span><span class="l-en"><strong>Forgetting <code>self.</code></strong> on widgets, so they are deleted when the function ends and never appear.</span></li>
+      <li><span class="l-ar"><strong>استخدام <code>subprocess.run</code></strong> داخل GUI لعملية طويلة.</span><span class="l-en"><strong>Using <code>subprocess.run</code></strong> in a GUI for a long operation.</span></li>
+      <li><span class="l-ar"><strong>نسيان <code>sys.exit(app.exec())</code></strong> فتغلق النافذة فورًا.</span><span class="l-en"><strong>Forgetting <code>sys.exit(app.exec())</code></strong>, so the window closes immediately.</span></li>
+      <li><span class="l-ar"><strong>تعديل الواجهة من Thread آخر.</strong> يُعدَّل الـ GUI من الـ Main Thread فقط، واستخدم Signals لنقل البيانات.</span><span class="l-en"><strong>Changing the UI from another thread.</strong> Only the main thread may touch the GUI; use Signals to pass data.</span></li>
+      <li><span class="l-ar"><strong>الـ Enum في PySide6 الحديث</strong>: اكتب <code>Qt.AlignmentFlag.AlignCenter</code> وليس <code>Qt.AlignCenter</code> القديمة.</span><span class="l-en"><strong>Modern PySide6 enums</strong>: write <code>Qt.AlignmentFlag.AlignCenter</code>, not the old <code>Qt.AlignCenter</code>.</span></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ==================== MORE WIDGETS ==================== -->
+<section class="chapter" id="more">
+  <h2>21. More Widgets &amp; Elements</h2>
+  <div class="block">
+    <p class="l-ar">هذا القسم يغطي كل العناصر التي لم يكن لها شرح مستقل: الحاويات، النوافذ الحوارية، القوائم، الجداول، عناصر الإدخال الإضافية، وعناصر العرض. كل عنصر له مثال قصير.</p>
+    <p class="l-en">This section covers every element that did not have its own explanation: containers, dialogs, menus, tables, extra input widgets, and display widgets. Each one has a short example.</p>
+  </div>
+
+  <h3 id="m-frame">QFrame</h3>
+  <div class="block">
+    <p class="l-ar">حاوية بحدود وظل. أساس كثير من الـ widgets الأخرى. يمكنك وضع Layout داخلها.</p>
+    <p class="l-en">A bordered container with a shadow. Many other widgets are built on it. You can put a layout inside it.</p>
+  </div>
+<pre><code>from PySide6.QtWidgets import QFrame, QVBoxLayout, QLabel
+
+card = QFrame()
+card.setFrameShape(QFrame.Shape.StyledPanel)   # NoFrame, Box, Panel, StyledPanel, HLine, VLine
+card.setFrameShadow(QFrame.Shadow.Raised)      # Plain, Raised, Sunken
+inner = QVBoxLayout(card)                      # layout inside the frame
+inner.addWidget(QLabel("inside the card"))</code></pre>
+
+  <h3 id="m-group">QGroupBox</h3>
+  <div class="block">
+    <p class="l-ar">مجموعة لها عنوان وإطار، تُستخدم لتجميع عناصر مرتبطة. إذا جعلتها قابلة للتحديد يظهر مربع اختيار في العنوان.</p>
+    <p class="l-en">A titled frame used to group related widgets. If it is checkable, a checkbox appears in the title.</p>
+  </div>
+<pre><code>from PySide6.QtWidgets import QGroupBox, QVBoxLayout, QRadioButton
+
+group = QGroupBox("Choose size")
+vbox = QVBoxLayout(group)
+vbox.addWidget(QRadioButton("Small"))
+vbox.addWidget(QRadioButton("Large"))
+group.setCheckable(True)                 # unchecked = children disabled</code></pre>
+
+  <h3 id="m-scroll">QScrollArea</h3>
+  <div class="block">
+    <p class="l-ar">تضع داخلها عنصرًا كبيرًا وتعرض شريط تمرير. أهم خطوة هي <code>setWidgetResizable(True)</code> لكي يتمدد المحتوى على عرض المنطقة.</p>
+    <p class="l-en">Holds a large widget and shows scrollbars. The key step is <code>setWidgetResizable(True)</code>, which makes the content fill the area's width.</p>
+  </div>
+<pre><code>from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QScrollArea, QWidget, QVBoxLayout, QLabel
+
+content = QWidget()
+content_layout = QVBoxLayout(content)
+for i in range(50):
+    content_layout.addWidget(QLabel(f"item {i}"))
+
+scroll = QScrollArea()
+scroll.setWidget(content)
+scroll.setWidgetResizable(True)                # essential
+scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)</code></pre>
+
+  <h3 id="m-tabs">QTabWidget</h3>
+  <div class="block">
+    <p class="l-ar">تبويبات. كل تبويب هو widget مستقل.</p>
+    <p class="l-en">Tabs. Each tab is an independent widget.</p>
+  </div>
+<pre><code>from PySide6.QtWidgets import QTabWidget, QLabel
+
+tabs = QTabWidget()
+tabs.addTab(QLabel("general page"), "General")
+tabs.addTab(QLabel("advanced page"), "Advanced")
+tabs.currentChanged.connect(lambda index: print("tab", index))</code></pre>
+
+  <h3 id="m-stack">QStackedWidget</h3>
+  <div class="block">
+    <p class="l-ar">مجموعة صفحات يظهر منها صفحة واحدة في كل مرة. مفيدة للتنقل بين شاشات بأزرار.</p>
+    <p class="l-en">A set of pages where only one is visible at a time. Useful for switching screens with buttons.</p>
+  </div>
+<pre><code>from PySide6.QtWidgets import QStackedWidget, QLabel, QPushButton
+
+stack = QStackedWidget()
+stack.addWidget(QLabel("screen A"))      # index 0
+stack.addWidget(QLabel("screen B"))      # index 1
+stack.setCurrentIndex(1)                 # show screen B
+
+next_btn = QPushButton("next")
+next_btn.clicked.connect(lambda: stack.setCurrentIndex((stack.currentIndex() + 1) % stack.count()))</code></pre>
+
+  <h3 id="m-splitter">QSplitter</h3>
+  <div class="block">
+    <p class="l-ar">عنصران بينهما مقبض يمكن سحبه لتغيير المساحة.</p>
+    <p class="l-en">Two widgets separated by a handle that the user can drag to resize them.</p>
+  </div>
+<pre><code>from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QSplitter, QTextEdit
+
+split = QSplitter(Qt.Orientation.Horizontal)
+split.addWidget(QTextEdit("left"))
+split.addWidget(QTextEdit("right"))
+split.setSizes([200, 300])               # initial sizes in pixels</code></pre>
+
+  <h3 id="m-dialog">QDialog (custom)</h3>
+  <div class="block">
+    <p class="l-ar">نافذة حوارية تصنعها بنفسك، مع أزرار OK / Cancel. <code>exec()</code> تفتحها بشكل مودال (تنتظر حتى تُغلق)، وترجع قيمة تدل على الزر الذي ضُغط.</p>
+    <p class="l-en">A dialog window you build yourself, with OK / Cancel buttons. <code>exec()</code> opens it modally (the caller waits until it closes) and returns which button was pressed.</p>
+  </div>
+<pre><code>from PySide6.QtWidgets import (QDialog, QVBoxLayout, QLabel,
+                               QLineEdit, QDialogButtonBox)
+
+class NameDialog(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Enter name")
+        layout = QVBoxLayout(self)
+        self.edit = QLineEdit()
+        layout.addWidget(QLabel("Name:"))
+        layout.addWidget(self.edit)
+
+        buttons = QDialogButtonBox(
+            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
+        )
+        buttons.accepted.connect(self.accept)    # closes with Accepted
+        buttons.rejected.connect(self.reject)    # closes with Rejected
+        layout.addWidget(buttons)
+
+# usage inside MainWindow
+dlg = NameDialog(self)
+if dlg.exec() == QDialog.DialogCode.Accepted:
+    print("name:", dlg.edit.text())</code></pre>
+
+  <h3 id="m-color">QColorDialog</h3>
+  <div class="block">
+    <p class="l-ar">نافذة جاهزة لاختيار لون. ترجع كائن <code>QColor</code>.</p>
+    <p class="l-en">A ready-made dialog for choosing a color. It returns a <code>QColor</code> object.</p>
+  </div>
+<pre><code>from PySide6.QtWidgets import QColorDialog
+
+color = QColorDialog.getColor(parent=self)
+if color.isValid():                      # False if the user pressed Cancel
+    print(color.name())                  # e.g. "#8fb8ff"</code></pre>
+
+  <h3 id="m-menu">QMenuBar, QMenu &amp; QAction</h3>
+  <div class="block">
+    <p class="l-ar"><strong>QAction</strong> هو أمر واحد (مثل "فتح"). يمكن وضعه في القائمة وشريط الأدوات معًا، ويمكن ربطه باختصار لوحة المفاتيح. <strong>QMenu</strong> قائمة تحتوي Actions، و<strong>QMenuBar</strong> الشريط العلوي الذي يحتوي القوائم.</p>
+    <p class="l-en"><strong>QAction</strong> is a single command (such as "Open"). It can appear in a menu and a toolbar at once, and can have a keyboard shortcut. <strong>QMenu</strong> holds actions, and <strong>QMenuBar</strong> is the top bar that holds menus.</p>
+  </div>
+<pre><code>from PySide6.QtGui import QAction
+
+file_menu = self.menuBar().addMenu("File")   # QMenu in the menu bar
+
+open_act = QAction("Open", self)
+open_act.setShortcut("Ctrl+O")
+open_act.triggered.connect(self.open_file)   # triggered = action selected
+file_menu.addAction(open_act)
+
+file_menu.addSeparator()
+exit_act = QAction("Exit", self)
+exit_act.triggered.connect(self.close)
+file_menu.addAction(exit_act)</code></pre>
+
+  <h3 id="m-toolbar">QToolBar</h3>
+  <div class="block">
+    <p class="l-ar">شريط أدوات يعرض أزرارًا صغيرة، غالبًا من الـ QAction نفسها.</p>
+    <p class="l-en">A toolbar that shows small buttons, usually created from the same QAction objects.</p>
+  </div>
+<pre><code>from PySide6.QtWidgets import QToolBar
+
+toolbar = QToolBar("Main toolbar")
+self.addToolBar(toolbar)                 # attach it to a QMainWindow
+toolbar.addAction(open_act)              # reuse the action from the menu
+toolbar.addSeparator()
+toolbar.addAction(exit_act)</code></pre>
+
+  <h3 id="m-status">QStatusBar</h3>
+  <div class="block">
+    <p class="l-ar">الشريط السفلي للحالة. الرسالة تختفي بعد وقت تحدده بالمللي ثانية.</p>
+    <p class="l-en">The bottom bar for status messages. A message can disappear after a set time in milliseconds.</p>
+  </div>
+<pre><code>self.statusBar().showMessage("Ready", 3000)   # disappears after 3 seconds
+self.statusBar().showMessage("Saved")          # stays until replaced
+self.statusBar().clearMessage()</code></pre>
+
+  <h3 id="m-spin">QSpinBox</h3>
+  <div class="block">
+    <p class="l-ar">رقم صحيح مع أزرار + و -. يمكن تحديد الحد الأدنى والأعلى ونص يظهر بعده.</p>
+    <p class="l-en">An integer with + and - buttons. You can set a minimum, maximum, and a suffix.</p>
+  </div>
+<pre><code>from PySide6.QtWidgets import QSpinBox
+
+spin = QSpinBox()
+spin.setRange(0, 10)
+spin.setValue(3)
+spin.setSuffix(" items")
+spin.valueChanged.connect(lambda v: print("value:", v))</code></pre>
+
+  <h3 id="m-dspin">QDoubleSpinBox</h3>
+  <div class="block">
+    <p class="l-ar">مثل QSpinBox لكن للأرقام العشرية.</p>
+    <p class="l-en">Like QSpinBox but for decimal numbers.</p>
+  </div>
+<pre><code>from PySide6.QtWidgets import QDoubleSpinBox
+
+price = QDoubleSpinBox()
+price.setRange(0.0, 999.99)
+price.setDecimals(2)                     # digits after the dot
+price.setSingleStep(0.5)                 # step per click
+price.setPrefix("$ ")</code></pre>
+
+  <h3 id="m-slider">QSlider</h3>
+  <div class="block">
+    <p class="l-ar">شريط تمرير لاختيار قيمة بالسحب.</p>
+    <p class="l-en">A sliding bar for choosing a value by dragging.</p>
+  </div>
+<pre><code>from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QSlider
+
+slider = QSlider(Qt.Orientation.Horizontal)
+slider.setRange(0, 100)
+slider.setValue(40)
+slider.valueChanged.connect(lambda v: print("slider:", v))</code></pre>
+
+  <h3 id="m-dial">QDial</h3>
+  <div class="block">
+    <p class="l-ar">مقبض دائري مثل زر الصوت.</p>
+    <p class="l-en">A round knob, like a volume knob.</p>
+  </div>
+<pre><code>from PySide6.QtWidgets import QDial
+
+dial = QDial()
+dial.setRange(0, 100)
+dial.setNotchesVisible(True)
+dial.valueChanged.connect(lambda v: print("dial:", v))</code></pre>
+
+  <h3 id="m-progress">QProgressBar</h3>
+  <div class="block">
+    <p class="l-ar">شريط تقدم. إذا جعلت المدى <code>0, 0</code> يصبح شريطًا متحركًا دون نسبة محددة (مفيد عندما لا تعرف مدة العملية).</p>
+    <p class="l-en">A progress bar. If the range is <code>0, 0</code> it becomes an indeterminate busy indicator (useful when you don't know how long a task takes).</p>
+  </div>
+<pre><code>from PySide6.QtWidgets import QProgressBar
+
+bar = QProgressBar()
+bar.setRange(0, 100)
+bar.setValue(70)                         # shows 70%
+bar.setTextVisible(True)</code></pre>
+
+  <h3 id="m-lcd">QLCDNumber</h3>
+  <div class="block">
+    <p class="l-ar">عرض أرقام بشكل شاشة LCD رقمية.</p>
+    <p class="l-en">Displays numbers like a digital LCD screen.</p>
+  </div>
+<pre><code>from PySide6.QtWidgets import QLCDNumber
+
+lcd = QLCDNumber(5)                      # up to 5 digits
+lcd.display(42)</code></pre>
+
+  <h3 id="m-toolbtn">QToolButton</h3>
+  <div class="block">
+    <p class="l-ar">زر صغير مصمم للأشرطة. يمكن أن يكون قابلًا للتحديد (ضغطة تشغيل وأخرى إيقاف).</p>
+    <p class="l-en">A small button designed for toolbars. It can be checkable (press to turn on, press again to turn off).</p>
+  </div>
+<pre><code>from PySide6.QtWidgets import QToolButton
+
+bold = QToolButton()
+bold.setText("Bold")
+bold.setCheckable(True)
+bold.toggled.connect(lambda on: print("bold on" if on else "bold off"))</code></pre>
+
+  <h3 id="m-datetime">QDateEdit, QTimeEdit &amp; QDateTimeEdit</h3>
+  <div class="block">
+    <p class="l-ar">حقول إدخال للتاريخ والوقت. <code>setCalendarPopup(True)</code> يفتح تقويمًا عند الضغط.</p>
+    <p class="l-en">Input fields for date and time. <code>setCalendarPopup(True)</code> opens a calendar when clicked.</p>
+  </div>
+<pre><code>from PySide6.QtCore import QDate, QTime, QDateTime
+from PySide6.QtWidgets import QDateEdit, QTimeEdit, QDateTimeEdit
+
+date = QDateEdit(QDate.currentDate())
+date.setCalendarPopup(True)
+date.setDisplayFormat("yyyy-MM-dd")
+print(date.date().toString("yyyy-MM-dd"))
+
+time = QTimeEdit(QTime.currentTime())
+both = QDateTimeEdit(QDateTime.currentDateTime())</code></pre>
+
+  <h3 id="m-calendar">QCalendarWidget</h3>
+  <div class="block">
+    <p class="l-ar">تقويم كامل تختار منه يومًا. الإشارة <code>clicked</code> ترسل <code>QDate</code>.</p>
+    <p class="l-en">A full calendar you can pick a day from. The <code>clicked</code> signal sends a <code>QDate</code>.</p>
+  </div>
+<pre><code>from PySide6.QtWidgets import QCalendarWidget
+
+cal = QCalendarWidget()
+cal.clicked.connect(lambda qdate: print(qdate.toString("yyyy-MM-dd")))</code></pre>
+
+  <h3 id="m-list">QListWidget</h3>
+  <div class="block">
+    <p class="l-ar">قائمة عناصر قابلة للاختيار. كل عنصر هو <code>QListWidgetItem</code>.</p>
+    <p class="l-en">A selectable list of items. Each item is a <code>QListWidgetItem</code>.</p>
+  </div>
+<pre><code>from PySide6.QtWidgets import QListWidget, QListWidgetItem
+
+lst = QListWidget()
+lst.addItems(["one", "two"])
+lst.addItem(QListWidgetItem("three"))
+lst.itemClicked.connect(lambda item: print(item.text()))
+
+print(lst.currentRow())                  # index of the selected row (-1 if none)
+lst.takeItem(0)                          # remove the first item
+lst.clear()                              # remove all</code></pre>
+
+  <h3 id="m-table">QTableWidget</h3>
+  <div class="block">
+    <p class="l-ar">جدول صفوف وأعمدة. كل خلية <code>QTableWidgetItem</code>.</p>
+    <p class="l-en">A grid of rows and columns. Each cell is a <code>QTableWidgetItem</code>.</p>
+  </div>
+<pre><code>from PySide6.QtWidgets import QTableWidget, QTableWidgetItem
+
+table = QTableWidget(3, 2)               # 3 rows, 2 columns
+table.setHorizontalHeaderLabels(["Name", "Age"])
+table.setItem(0, 0, QTableWidgetItem("Ali"))
+table.setItem(0, 1, QTableWidgetItem("25"))
+print(table.item(0, 0).text())           # read a cell
+table.cellClicked.connect(lambda row, col: print(row, col))</code></pre>
+
+  <h3 id="m-tree">QTreeWidget</h3>
+  <div class="block">
+    <p class="l-ar">عرض شجرة بعناصر أب وأبناء، مثل مستكشف الملفات.</p>
+    <p class="l-en">A tree view with parent and child items, like a file explorer.</p>
+  </div>
+<pre><code>from PySide6.QtWidgets import QTreeWidget, QTreeWidgetItem
+
+tree = QTreeWidget()
+tree.setHeaderLabels(["Name", "Type"])
+parent = QTreeWidgetItem(tree, ["src", "folder"])
+child = QTreeWidgetItem(parent, ["main.py", "file"])   # child of parent
+parent.setExpanded(True)</code></pre>
+
+  <h3 id="m-image">QLabel with QPixmap (images)</h3>
+  <div class="block">
+    <p class="l-ar">لعرض صورة داخل QLabel نستخدم <code>QPixmap</code>. استخدم <code>scaled</code> لتصغير الصورة مع الحفاظ على نسبة الأبعاد.</p>
+    <p class="l-en">To show an image in a QLabel, use <code>QPixmap</code>. Use <code>scaled</code> to shrink the image while keeping its aspect ratio.</p>
+  </div>
+<pre><code>from PySide6.QtCore import Qt
+from PySide6.QtGui import QPixmap
+from PySide6.QtWidgets import QLabel
+
+img = QLabel()
+pix = QPixmap("logo.png")
+img.setPixmap(pix.scaled(200, 200, Qt.AspectRatioMode.KeepAspectRatio))</code></pre>
+
+  <h3 id="m-layout">Layout details (spacing, margins, stretch, alignment)</h3>
+  <div class="block">
+    <p class="l-ar">أدوات التحكم في المسافات والمحاذاة:</p>
+    <ul class="list">
+      <li><code>setContentsMargins(left, top, right, bottom)</code> — <span class="l-ar">الهامش الداخلي للحاوية</span><span class="l-en">inner margin of the container</span></li>
+      <li><code>setSpacing(px)</code> — <span class="l-ar">المسافة بين العناصر</span><span class="l-en">gap between items</span></li>
+      <li><code>addStretch()</code> — <span class="l-ar">مساحة مرنة تدفع العناصر لتبتعد</span><span class="l-en">flexible space that pushes items apart</span></li>
+      <li><code>addWidget(w, stretch)</code> — <span class="l-ar">الرقم يحدد حصة العنصر من المساحة الزائدة</span><span class="l-en">the number sets its share of extra space</span></li>
+      <li><code>addWidget(w, alignment=...)</code> — <span class="l-ar">المحاذاة داخل خانتها</span><span class="l-en">alignment inside its cell</span></li>
+    </ul>
+<pre><code>from PySide6.QtCore import Qt
+from PySide6.QtWidgets import (QVBoxLayout, QHBoxLayout, QFormLayout,
+                               QLineEdit, QPushButton, QLabel)
+
+layout = QVBoxLayout()
+layout.setContentsMargins(20, 20, 20, 20)
+layout.setSpacing(10)
+layout.addWidget(QLabel("Title"), alignment=Qt.AlignmentFlag.AlignCenter)
+layout.addStretch()                      # push what follows to the bottom
+
+row = QHBoxLayout()
+row.addStretch()                         # push buttons to the right
+row.addWidget(QPushButton("OK"))
+row.addWidget(QPushButton("Cancel"))
+layout.addLayout(row)
+
+form = QFormLayout()                     # label + field pairs
+form.addRow("Name:", QLineEdit())
+form.addRow("Email:", QLineEdit())
+layout.addLayout(form)</code></pre>
+  </div>
+</section>
+
+<!-- ==================== CHEAT SHEET ==================== -->
+<section class="chapter" id="cheat">
+  <h2>22. Cheat Sheet</h2>
+  <div class="block">
+    <table>
+      <tr><th><span class="l-ar">الهدف</span><span class="l-en">Goal</span></th><th><span class="l-ar">الكود</span><span class="l-en">Code</span></th></tr>
+      <tr><td><span class="l-ar">نافذة مع زر</span><span class="l-en">Window with a button</span></td><td><code>w = QWidget(); b = QPushButton("x", w)</code></td></tr>
+      <tr><td><span class="l-ar">ربط زر</span><span class="l-en">Connect a button</span></td><td><code>b.clicked.connect(self.handler)</code></td></tr>
+      <tr><td><span class="l-ar">قراءة نص</span><span class="l-en">Read text</span></td><td><code>line.text()</code></td></tr>
+      <tr><td><span class="l-ar">كتابة نص</span><span class="l-en">Write text</span></td><td><code>label.setText("hi")</code></td></tr>
+      <tr><td><span class="l-ar">عمودي / أفقي</span><span class="l-en">Vertical / horizontal</span></td><td><code>QVBoxLayout()</code> / <code>QHBoxLayout()</code></td></tr>
+      <tr><td><span class="l-ar">رسالة منبثقة</span><span class="l-en">Popup message</span></td><td><code>QMessageBox.information(self, "t", "m")</code></td></tr>
+      <tr><td><span class="l-ar">تشغيل سكربت بدون تجميد</span><span class="l-en">Run script without freezing</span></td><td><code>QProcess</code> + <code>readyReadStandardOutput</code></td></tr>
+      <tr><td><span class="l-ar">تنسيق</span><span class="l-en">Styling</span></td><td><code>setStyleSheet("...")</code></td></tr>
+      <tr><td><span class="l-ar">تشغيل التطبيق</span><span class="l-en">Start the app</span></td><td><code>sys.exit(app.exec())</code></td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- ==================== FINAL CODE ==================== -->
+<section class="chapter" id="final">
+  <h2>23. ✅ Final Working Code</h2>
+  <div class="block tip">
+    <p class="l-ar">مثال كامل يجمع كل ما سبق بالطريقة الصحيحة: <code>QMainWindow</code>، Layouts، Signals/Slots، <code>QProcess</code> لتشغيل <code>hi.sh</code>، حماية من التشغيل المزدوج، واستخدام Enum الحديثة.</p>
+    <p class="l-en">A complete example combining everything above the right way: <code>QMainWindow</code>, layouts, Signals/Slots, <code>QProcess</code> running <code>hi.sh</code>, protection against double runs, and modern enums.</p>
+  </div>
+<pre><code>import sys
+from PySide6.QtCore import QProcess
+from PySide6.QtWidgets import (
+    QApplication, QMainWindow, QWidget,
+    QVBoxLayout, QHBoxLayout,
+    QLabel, QLineEdit, QPushButton,
+    QCheckBox, QRadioButton, QTextEdit,
+    QMessageBox
+)
+
+
+class MainWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()                       # initialize Qt (required)
+        self.setWindowTitle("PySide6 - final example")
+        self.resize(520, 460)
+
+        # ---------- 1) main container ----------
+        central = QWidget()
+        self.setCentralWidget(central)
+        main_layout = QVBoxLayout(central)       # vertical arrangement
+
+        # ---------- 2) input field ----------
+        main_layout.addWidget(QLabel("Name:"))
+        self.name_input = QLineEdit()
+        self.name_input.setPlaceholderText("type your name")
+        main_layout.addWidget(self.name_input)
+
+        # ---------- 3) checkbox shows/hides the save button ----------
+        self.check_box = QCheckBox("show save button")
+        self.check_box.toggled.connect(self.on_checkbox)   # toggled sends bool
+        main_layout.addWidget(self.check_box)
+
+        self.save_btn = QPushButton("Save")
+        self.save_btn.setVisible(False)                    # hidden at start
+        self.save_btn.clicked.connect(self.on_save)
+        main_layout.addWidget(self.save_btn)
+
+        # ---------- 4) radio buttons (choose one) ----------
+        radio_row = QHBoxLayout()                          # horizontal row
+        self.rb1 = QRadioButton("Option 1")
+        self.rb2 = QRadioButton("Option 2")
+        self.rb1.setChecked(True)                          # default choice
+        self.rb1.toggled.connect(self.on_radio)
+        radio_row.addWidget(self.rb1)
+        radio_row.addWidget(self.rb2)
+        main_layout.addLayout(radio_row)                   # put the row in the column
+
+        # ---------- 5) run-script button ----------
+        self.run_btn = QPushButton("Run hi.sh")
+        self.run_btn.clicked.connect(self.run_script)
+        main_layout.addWidget(self.run_btn)
+
+        # ---------- 6) output area (read-only) ----------
+        self.output = QTextEdit()
+        self.output.setReadOnly(True)
+        main_layout.addWidget(self.output)
+
+        # ---------- 7) QProcess runs the script without freezing the UI ----------
+        self.process = QProcess(self)
+        self.process.setProcessChannelMode(
+            QProcess.ProcessChannelMode.MergedChannels     # stdout + stderr together
+        )
+        self.process.readyReadStandardOutput.connect(self.on_output_ready)
+        self.process.finished.connect(self.on_finished)
+
+    # ================= Slots =================
+
+    def on_checkbox(self, checked):
+        # checked is True or False
+        self.save_btn.setVisible(checked)
+
+    def on_radio(self, checked):
+        # toggled fires for both buttons; react only when a button becomes selected
+        if not checked:
+            return
+        self.run_btn.setText("Run hi.sh (Option 1)" if self.rb1.isChecked() else "Run hi.sh (Option 2)")
+
+    def on_save(self):
+        name = self.name_input.text().strip()     # strip: remove extra spaces
+        if not name:
+            QMessageBox.warning(self, "Error", "Please type a name first.")
+            return
+        QMessageBox.information(self, "Saved", f"Saved name: {name}")
+
+    def run_script(self):
+        # prevent starting a new script while another is still running
+        if self.process.state() != QProcess.ProcessState.NotRunning:
+            return
+
+        name = self.name_input.text().strip() or "guest"
+        self.output.clear()
+        # program first, then its arguments. Change the path if hi.sh is elsewhere
+        self.process.start("sh", ["hi.sh", "arg1", name])
+
+    def on_output_ready(self):
+        # called every time new output arrives
+        raw = self.process.readAllStandardOutput().data()   # QByteArray -> bytes
+        self.output.insertPlainText(raw.decode("utf-8", errors="replace"))
+
+    def on_finished(self, exit_code, exit_status):
+        self.output.append(f"\n--- finished (exit code: {exit_code}) ---")
+
+
+# ================= Entry point =================
+if __name__ == "__main__":
+    app = QApplication(sys.argv)     # the app engine: create only once
+    window = MainWindow()
+    window.show()
+    sys.exit(app.exec())             # event loop, always the last line</code></pre>
+
+  <div class="block">
+    <h3><span class="l-ar">شرح الأجزاء المهمة في المثال النهائي</span><span class="l-en">Key parts of the final example</span></h3>
+    <table>
+      <tr><th><span class="l-ar">الجزء</span><span class="l-en">Part</span></th><th><span class="l-ar">ماذا يفعل ولماذا</span><span class="l-en">What it does and why</span></th></tr>
+      <tr><td><code>super().__init__()</code></td><td><span class="l-ar">يهيئ Qt من الداخل. بدونه لا تعمل الكلاسات الموروثة.</span><span class="l-en">Initializes Qt internally. Without it inherited classes don't work.</span></td></tr>
+      <tr><td><code>QVBoxLayout(central)</code></td><td><span class="l-ar">يربط الـ layout بالحاوية مباشرة، وكل <code>addWidget</code> يضيف عنصرًا للترتيب.</span><span class="l-en">Attaches the layout to the container; each <code>addWidget</code> adds an item to the arrangement.</span></td></tr>
+      <tr><td><code>setVisible(False)</code></td><td><span class="l-ar">يخفي الزر دون حذفه من الذاكرة، ويعود عند <code>True</code>.</span><span class="l-en">Hides the button without deleting it; it reappears on <code>True</code>.</span></td></tr>
+      <tr><td><code>on_radio(self, checked)</code></td><td><span class="l-ar">الـ slot يستقبل قيمة الإشارة، لذلك نعرّف المعامل صراحةً.</span><span class="l-en">The slot receives the signal's value, so we declare the parameter explicitly.</span></td></tr>
+      <tr><td><code>strip() or "guest"</code></td><td><span class="l-ar">إذا كان الحقل فارغًا تُستخدم القيمة الافتراضية.</span><span class="l-en">If the field is empty, the default value is used.</span></td></tr>
+      <tr><td><code>process.state()</code></td><td><span class="l-ar">يمنع تشغيل مزدوج للسكربت.</span><span class="l-en">Prevents running the script twice at once.</span></td></tr>
+      <tr><td><code>readAllStandardOutput().data()</code></td><td><span class="l-ar">يعطي bytes، ثم <code>decode</code> لتحويلها إلى نص.</span><span class="l-en">Returns bytes; <code>decode</code> converts them to text.</span></td></tr>
+      <tr><td><code>sys.exit(app.exec())</code></td><td><span class="l-ar">يبدأ حلقة الأحداث ويغلق البرنامج بالكود الصحيح عند الإغلاق.</span><span class="l-en">Starts the event loop and exits with the correct code when closed.</span></td></tr>
+    </table>
+  </div>
+</section>
+
+<footer>
+  <span class="l-ar">دليل مكتوب للفهم لا للنسخ فقط — عدّل، جرّب، وكسّر الكود لتتعلم.</span>
+  <span class="l-en">A guide written for understanding, not just copying — modify, experiment, and break things to learn.</span>
+</footer>
+
+</main>
+</div>
+
+<script>
+  // ---- language (ar / en), remembered ----
+  function setLang(lang) {
+    document.documentElement.setAttribute("data-lang", lang);
+    document.documentElement.lang = lang;
+    document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+    document.getElementById("langAr").classList.toggle("active", lang === "ar");
+    document.getElementById("langEn").classList.toggle("active", lang === "en");
+    document.getElementById("search").placeholder = lang === "ar" ? "ابحث..." : "search...";
+    localStorage.setItem("guide-lang", lang);
+  }
+  document.getElementById("langAr").addEventListener("click", function () { setLang("ar"); });
+  document.getElementById("langEn").addEventListener("click", function () { setLang("en"); });
+  setLang(localStorage.getItem("guide-lang") || "ar");
+
+  // ---- theme (remembered) ----
+  if (localStorage.getItem("guide-theme") === "light") document.body.classList.add("light");
+  document.getElementById("themeBtn").addEventListener("click", function () {
+    document.body.classList.toggle("light");
+    localStorage.setItem("guide-theme", document.body.classList.contains("light") ? "light" : "dark");
+  });
+
+  // ---- copy buttons on every code block ----
+  document.querySelectorAll("pre").forEach(function (pre) {
+    const btn = document.createElement("button");
+    btn.className = "copy";
+    btn.textContent = "copy";
+    btn.addEventListener("click", function () {
+      if (!navigator.clipboard) return;
+      navigator.clipboard.writeText(pre.innerText).then(function () {
+        btn.textContent = "✓";
+        setTimeout(function () { btn.textContent = "copy"; }, 1500);
+      });
+    });
+    pre.appendChild(btn);
+  });
+
+  // ---- search: hide chapters and links that don't match ----
+  const search = document.getElementById("search");
+  search.addEventListener("input", function () {
+    const q = search.value.trim().toLowerCase();
+    document.querySelectorAll("section.chapter").forEach(function (sec) {
+      sec.classList.toggle("hidden", !(q === "" || sec.textContent.toLowerCase().includes(q)));
+    });
+    document.querySelectorAll("nav.side a").forEach(function (a) {
+      const target = document.querySelector(a.getAttribute("href"));
+      a.classList.toggle("hidden", !!target && target.classList.contains("hidden"));
+    });
+  });
+</script>
+</body>
+</html>
